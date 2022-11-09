@@ -235,6 +235,32 @@ oDiv.innerHTML = `<p class="title">请选择车衣颜色</p><ul class="selectCol
 document.body.appendChild(oDiv)
 
 
+var pointTexture = new THREE.TextureLoader().load('./textture/arrow.png');
+var material = new THREE.SpriteMaterial( { map: pointTexture ,  color: 0xffffff} );
+var sprite = new THREE.Sprite( material );
+sprite.scale.set( 0.5, 0.5, 0.5 );
+sprite.position.set(0,1.5,0)
+scene.add(sprite)
+
+
+console.log('scene.children',scene.children)
+
+document.body.addEventListener("click",function (event) {
+	event.preventDefault();
+
+	var raycaster = new THREE.Raycaster();
+	var mouse = new THREE.Vector2();
+	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	console.log('mouse',mouse)
+	raycaster.setFromCamera( mouse, camera );
+
+	var intersects = raycaster.intersectObjects( [sprite] );
+	if(intersects.length>0){
+		alert(1)
+	}
+});
+
 
 
 
@@ -275,8 +301,8 @@ controls.enableDamping = true;
 
 
 /** 添加坐标轴辅助器 s */
-// const axesHelper = new THREE.AxesHelper( 5 );
-// scene.add( axesHelper );
+const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper );
 /** 添加坐标轴辅助器 e */
 
 
