@@ -39,19 +39,53 @@ const living_arr = [
 	"4_b",//前
 	"4_f"//后
 ];
-const boxMaterials = []
 
-living_arr.forEach(item=>{
-	//纹理加载
-	let texture = new THREE.TextureLoader().load(`./textture/vr_room/living/${item}.jpg`)
-	//上下两张图 需要旋转180度 要不对不上
-	if(item === '4_u' || item === '4_d') {
-		texture.rotation = Math.PI;
-		//以这个为中心点旋转 0.5, 0.5对应纹理的正中心。默认值为(0,0)，即左下角。 https://threejs.org/docs/index.html?q=TextureLoader#api/zh/textures/Texture
-		texture.center = new THREE.Vector2(0.5,0.5)
-	}
-	boxMaterials.push(new THREE.MeshBasicMaterial({map:texture}))
-})
+//卧室
+const bedroom_arr = [
+	"23_l",
+	"23_r",
+	"23_u",
+	"23_d",
+	"23_b",
+	"23_f"
+]
+
+
+
+
+let boxMaterials = []
+
+
+function livingRoomMaterial() {
+	living_arr.forEach(item=>{
+		//纹理加载
+		let texture = new THREE.TextureLoader().load(`./textture/vr_room/living/${item}.jpg`)
+		//上下两张图 需要旋转180度 要不对不上
+		if(item === '4_u' || item === '4_d') {
+			texture.rotation = Math.PI;
+			//以这个为中心点旋转 0.5, 0.5对应纹理的正中心。默认值为(0,0)，即左下角。 https://threejs.org/docs/index.html?q=TextureLoader#api/zh/textures/Texture
+			texture.center = new THREE.Vector2(0.5,0.5)
+		}
+		boxMaterials.push(new THREE.MeshBasicMaterial({map:texture}))
+	})
+	
+
+}
+livingRoomMaterial()
+
+
+function bedroomMaterial() {
+	bedroom_arr.forEach(item=>{
+		let texture = new THREE.TextureLoader().load(`./textture/vr_room/bedroom/${item}.jpg`)
+		if(item === '23_u' || item === '23_d') {
+			texture.rotation = Math.PI;
+			//以这个为中心点旋转 0.5, 0.5对应纹理的正中心。默认值为(0,0)，即左下角。 https://threejs.org/docs/index.html?q=TextureLoader#api/zh/textures/Texture
+			texture.center = new THREE.Vector2(0.5,0.5)
+		}
+		boxMaterials.push(new THREE.MeshBasicMaterial({map:texture}))
+	})
+}
+
 
 
 //第二个参数 —— （可选）一个Material，或是一个包含有Material的数组，默认是一个新的MeshBasicMaterial
@@ -59,6 +93,42 @@ const cube = new THREE.Mesh(geometry,boxMaterials)
 // geometry.scale(1,1,-1) 同样的效果，把Z周翻转过来 使我们在立方体里边能看到贴图
 cube.geometry.scale(1,1,-1)
 scene.add(cube)
+
+
+
+
+
+const oDiv = document.createElement('div');
+oDiv.className = 'changeScene'
+oDiv.style.position = 'fixed'
+oDiv.style.right = 0
+oDiv.style.top = 0
+
+oDiv.innerHTML = `<p class="livingroom">客厅</p> <p class="bedroom">卧室</p>`
+
+document.body.appendChild(oDiv)
+
+
+
+
+
+
+document.body.querySelector('.bedroom').onclick = function() {
+	boxMaterials.length = 0;
+	bedroomMaterial()
+	
+}
+
+
+document.body.querySelector('.livingroom').onclick = function() {
+	// alert(2)
+	boxMaterials.length = 0;
+	livingRoomMaterial()
+	
+}
+
+
+
 
 
 //初始化渲染器
