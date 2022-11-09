@@ -1,17 +1,9 @@
 import * as THREE from 'three'
 
-
 //导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-//导入HDR用的
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";//rebe加载器
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-//模型是压缩过的 所以需要解压库
-import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader'
 
 
-//反射库
-import { Reflector } from 'three/examples/jsm/objects/Reflector'
 
 //目标 VR全景
 
@@ -20,7 +12,7 @@ const scene = new THREE.Scene();
 //相机 透视相机PerspectiveCamera
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 //设置相机位置 继承 Object3D 的方法 X,Y,Z z轴设置的小一些 靠近些CUBE内部效果好
-camera.position.set(0,1.5,6)
+camera.position.set(0,0,2)
 //更新摄像头 宽高比，
 camera.aspect = window.innerWidth / window.innerHeight
 //更新摄像机的投影矩阵 因为摄像头宽高比变化后 像素矩阵要重新计算
@@ -31,101 +23,111 @@ scene.add( camera );
 
 /****  main  *** */
 
-const rgbeLoader = new RGBELoader();
-// 星光背景
-//资源较大，使用异步加载
-rgbeLoader.loadAsync("textture/sky12.hdr").then((texture) => {
- 
-	//// 第一种方法 main6.js 的圆柱体反射法
-	//可以把HDR的背景看成一个球，我们需要一个圆柱体包裹住这个球，让球体映射到圆柱体上
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.background = texture;
-  scene.environment = texture; //场景的月亮是发光的 需要月亮的光和投射
+//添加立方体
+const geometry = new THREE.BoxGeometry(10,10,10)
+// const material = new THREE.MeshBasicMaterial({color:0x00ff00})
+// const cube = new THREE.Mesh(geometry,material)
 
-	//第二种方法，设置球体的纹理是HDR 在把球体的外皮反过来
-	// const geometry = new THREE.SphereGeometry(5,32,32)
+
+//客厅
+
+const living_arr = [
+	"4_l",//左 
+	"4_r",//右
+	"4_u",//上
+	"4_d",//下
+	"4_b",//前
+	"4_f"//后
+];
+
+//卧室
+const bedroom_arr = [
+	"23_l",
+	"23_r",
+	"23_u",
+	"23_d",
+	"23_b",
+	"23_f"
+]
+
+
+
+
+let boxMaterials = []
+
+
+function livingRoomMaterial() {
+	living_arr.forEach(item=>{
+		//纹理加载
+		let texture = new THREE.TextureLoader().load(`./textture/vr_room/living/${item}.jpg`)
+		//上下两张图 需要旋转180度 要不对不上
+		if(item === '4_u' || item === '4_d') {
+			texture.rotation = Math.PI;
+			//以这个为中心点旋转 0.5, 0.5对应纹理的正中心。默认值为(0,0)，即左下角。 https://threejs.org/docs/index.html?q=TextureLoader#api/zh/textures/Texture
+			texture.center = new THREE.Vector2(0.5,0.5)
+		}
+		boxMaterials.push(new THREE.MeshBasicMaterial({map:texture}))
+	})
 	
-	// const sphere = new THREE.Mesh(
-	// 	geometry,
-	// 	new THREE.MeshBasicMaterial({map:texture})
-	// )
-	// geometry.scale(1,1,-1)
-	scene.add(sphere)
 
-});
-
-//创建机器人
-
-const loader = new GLTFLoader();
-const dracoLoader = new DRACOLoader();
-//设置解压到哪里取 这里边的一坨文件是从https://github.com/mrdoob/three.js/tree/master/examples/js/libs/draco 拷贝出来的 
-dracoLoader.setDecoderPath( './draco/gltf/' );
-dracoLoader.setDecoderConfig({type:'js'})
-loader.setDRACOLoader( dracoLoader );
-loader.load( './model/robot.glb', function ( gltf ) {
-	 const robot = gltf.scene;
-	console.log(robot) 
-	scene.add( robot );
-
-}, undefined, function ( e ) {
-	console.error( e );
-} );
+}
+livingRoomMaterial()
 
 
-//添加视频纹理
-let video = document.createElement('video')
-video.muted = true;
-video.src= "./textture/zp2.mp4"
-video.loop = true
-video.play()
-
-let videoTexture = new THREE.VideoTexture(video)
-
-//创建一个平面，承载这个视频纹理
-const videoPlane = new THREE.PlaneGeometry(8,4.5)
-const videoMaterial = new THREE.MeshBasicMaterial({
-	map:videoTexture,
-	transparent:true,
-	//https://threejs.org/docs/index.html?q=mesh#api/zh/materials/MeshBasicMaterial
-	//alpha贴图是一张灰度纹理，用于控制整个表面的不透明度。（黑色：完全透明；白色：完全不透明）。
-	//这个视频黑色的就是不透明的。
-	alphaMap:videoTexture,
-	side:THREE.DoubleSide //两面都可看到
-})
-
-const videoMesh = new THREE.Mesh(videoPlane,videoMaterial)
-videoMesh.position.set(0,0.2,0)
-//放倒90度
-videoMesh.rotation.x = -Math.PI / 2
-scene.add(videoMesh)
-
-
-//添加灯光
-const light1 = new THREE.DirectionalLight(0xffffff,0.3)
-light1.position.set(0,10,10)
-
-const light2 = new THREE.DirectionalLight(0xffffff,0.3)
-light2.position.set(0,10,-10)
-
-const lignt3 = new THREE.DirectionalLight(0xffffff,0.8)
-lignt3.position.set(10,10,10)
-
-scene.add(light1,light2,lignt3)
+function bedroomMaterial() {
+	bedroom_arr.forEach(item=>{
+		let texture = new THREE.TextureLoader().load(`./textture/vr_room/bedroom/${item}.jpg`)
+		if(item === '23_u' || item === '23_d') {
+			texture.rotation = Math.PI;
+			//以这个为中心点旋转 0.5, 0.5对应纹理的正中心。默认值为(0,0)，即左下角。 https://threejs.org/docs/index.html?q=TextureLoader#api/zh/textures/Texture
+			texture.center = new THREE.Vector2(0.5,0.5)
+		}
+		boxMaterials.push(new THREE.MeshBasicMaterial({map:texture}))
+	})
+}
 
 
 
-//添加镜面反射
+//第二个参数 —— （可选）一个Material，或是一个包含有Material的数组，默认是一个新的MeshBasicMaterial
+const cube = new THREE.Mesh(geometry,boxMaterials)
+// geometry.scale(1,1,-1) 同样的效果，把Z周翻转过来 使我们在立方体里边能看到贴图
+cube.geometry.scale(1,1,-1)
+scene.add(cube)
 
-//反射镜面
-const reflectGeometry = new THREE.PlaneGeometry(100,100)
-const mirror = new Reflector(reflectGeometry, {
-	clipBias: 0.03,
-	textureWidth: window.innerWidth * window.devicePixelRatio,
-	textureHeight: window.innerHeight * window.devicePixelRatio,
-	color: 0x333333
-});
-mirror.rotation.x = -Math.PI / 2
-scene.add(mirror);
+
+
+
+
+const oDiv = document.createElement('div');
+oDiv.className = 'changeScene'
+oDiv.style.position = 'fixed'
+oDiv.style.right = 0
+oDiv.style.top = 0
+
+oDiv.innerHTML = `<p class="livingroom">客厅</p> <p class="bedroom">卧室</p>`
+
+document.body.appendChild(oDiv)
+
+
+
+
+
+
+document.body.querySelector('.bedroom').onclick = function() {
+	boxMaterials.length = 0;
+	bedroomMaterial()
+	
+}
+
+
+document.body.querySelector('.livingroom').onclick = function() {
+	// alert(2)
+	boxMaterials.length = 0;
+	livingRoomMaterial()
+	
+}
+
+
 
 
 

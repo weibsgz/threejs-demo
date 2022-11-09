@@ -16,7 +16,7 @@
 
 - main9.js 水天一色小岛（引入water,GLTFLoader,DRACOLoader,HDR） 比较慢
 
-- main10.js 月球环绕地球
+- main10.js 月球环绕地球(文字标签)
 
 - main11.js VR实景看房（立方体6张贴图）
 

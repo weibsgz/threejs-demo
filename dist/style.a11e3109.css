@@ -47,4 +47,12 @@ p.title {
     color: #fff;
 }
 
+.changeScene p{
+    width:100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    cursor: pointer;
+}
+
 /*# sourceMappingURL=/style.a11e3109.css.map */
